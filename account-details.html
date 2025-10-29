@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Account Details - LOAN</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #1a202c;
+      color: #e2e8f0;
+      font-family: Arial, sans-serif;
+    }
+    .header {
+      background-color: #2d3748;
+    }
+    .card {
+      background-color: #4a5568;
+      border-radius: 10px;
+    }
+    .btn {
+      background-color: #718096;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 5px;
+    }
+    .btn:hover {
+      background-color: #a0aec0;
+    }
+  </style>
+</head>
+<body>
+  <header class="header p-4 flex justify-between items-center">
+    <div class="flex items-center">
+      <img src="https://via.placeholder.com/40" alt="Logo" class="mr-2">
+      <span class="text-xl font-bold">LOAN</span>
+      <span class="text-sm text-gray-400 ml-2">financially Health</span>
+    </div>
+    <nav class="space-x-4">
+      <a href="index.html" class="text-gray-300 hover:text-white">Home</a>
+      <a href="#" class="text-gray-300 hover:text-white">About</a>
+      <a href="#" class="text-gray-300 hover:text-white">Contact</a>
+    </nav>
+    <div class="space-x-4">
+      <a href="#" class="text-gray-300 hover:text-white" onclick="logout()">Logout</a>
+    </div>
+  </header>
+
+  <section class="py-10 text-center">
+    <h1 class="text-3xl font-bold">Account Details</h1>
+    <div class="card p-6 w-1/2 mx-auto mt-4" id="account-details">
+      <p>Loading...</p>
+    </div>
+  </section>
+
+  <footer class="p-4 flex justify-between bg-gray-800">
+    <div>
+      <h3>Write Us</h3>
+      <input type="text" placeholder="Email" class="p-2 mt-2 w-full bg-gray-700">
+      <button class="btn mt-2 w-full">SEND</button>
+    </div>
+    <div>
+      <h3>Company</h3>
+      <a href="#" class="block mt-2 text-gray-300 hover:text-white">About</a>
+      <a href="#" class="block mt-2 text-gray-300 hover:text-white">Contact</a>
+    </div>
+    <div>
+      <h3>Services</h3>
+      <a href="#" class="block mt-2 text-gray-300 hover:text-white">Loans</a>
+    </div>
+    <div>
+      <h3>Help Centre</h3>
+      <a href="#" class="block mt-2 text-gray-300 hover:text-white">FAQ</a>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { supabase } from './db.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) window.location.href = 'index.html';
+      else {
+        const container = document.getElementById('account-details');
+        container.innerHTML = `
+          <p>Name: ${user.user_metadata.name || 'N/A'} ${user.user_metadata.surname || ''}</p>
+          <p>Email: ${user.email}</p>
+          <p>Joined: ${new Date(user.created_at).toLocaleDateString()}</p>
+        `;
+      }
+    });
+
+    async function logout() {
+      const { error } = await supabase.auth.signOut();
+      if (error) alert(error.message);
+      else window.location.href = 'index.html';
+    }
+  </script>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</body>
+</html>

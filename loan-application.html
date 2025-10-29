@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loan Application - LOAN</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #1a202c; color: #e2e8f0; font-family: Arial, sans-serif; }
+    .header { background-color: #2d3748; }
+    .card { background-color: #4a5568; border-radius: 10px; }
+    .btn { background-color: #718096; color: #fff; padding: 10px 20px; border-radius: 5px; }
+    .btn:hover { background-color: #a0aec0; }
+  </style>
+</head>
+<body>
+  <header class="header p-4 flex justify-between items-center">
+    <div class="flex items-center">
+      <img src="https://via.placeholder.com/40" alt="Logo" class="mr-2">
+      <span class="text-xl font-bold">LOAN</span>
+      <span class="text-sm text-gray-400 ml-2">Financially Healthy</span>
+    </div>
+    <nav class="space-x-4">
+      <a href="index.html" class="text-gray-300 hover:text-white">Home</a>
+      <a href="#" class="text-gray-300 hover:text-white">About</a>
+      <a href="#" class="text-gray-300 hover:text-white">Contact</a>
+    </nav>
+    <div class="space-x-4">
+      <a href="#" class="text-gray-300 hover:text-white" onclick="logout()">Logout</a>
+    </div>
+  </header>
+
+  <section class="py-10 text-center">
+    <h1 class="text-3xl font-bold">Loan Application</h1>
+    <div class="card p-6 w-1/2 mx-auto mt-4">
+      <input type="number" id="loan-amount" placeholder="Loan Amount" class="p-2 mb-2 w-full bg-gray-700">
+      <input type="number" id="loan-duration" placeholder="Loan Duration (months)" class="p-2 mb-2 w-full bg-gray-700">
+      <button class="btn w-full mt-4" onclick="submitApplication()">Submit Application</button>
+    </div>
+  </section>
+
+  <footer class="p-4 flex justify-between bg-gray-800">
+    <div>
+      <h3>Write Us</h3>
+      <input type="text" placeholder="Email" class="p-2 mt-2 w-full bg-gray-700">
+      <button class="btn mt-2 w-full">SEND</button>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { supabase } from './db.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) window.location.href = 'index.html';
+    });
+
+    async function submitApplication() {
+      const { data: { user } } = await supabase.auth.getUser();
+      const amount = parseFloat(document.getElementById('loan-amount').value);
+      const duration = parseInt(document.getElementById('loan-duration').value);
+
+      const { error } = await supabase.from('loan_applications').insert({
+        user_id: user.id,
+        amount,
+        duration,
+        status: 'Pending',
+        date_applied: new Date().toISOString()
+      });
+
+      if (error) alert(error.message);
+      else {
+        alert('Loan application submitted!');
+        window.location.href = 'loan-status.html';
+      }
+    }
+
+    async function logout() {
+      const { error } = await supabase.auth.signOut();
+      if (error) alert(error.message);
+      else window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

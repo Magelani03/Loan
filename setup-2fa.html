@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup 2FA - LOAN</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="script.js" defer></script>
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <h1>Setup Two-Factor Authentication</h1>
+        <p>Scan the QR code with Google Authenticator or scan the code below:</p>
+        <div id="qrcode-container" style="margin: 20px 0;"></div>
+        <p id="secret-key" style="word-break: break-all; margin: 10px 0;"></p>
+        <form id="setup-2fa-form">
+            <input type="text" id="verification-code" placeholder="Enter 6-digit code:" required maxlength="6">
+            <button type="submit" class="btn">Verify & Enable 2FA</button>
+        </form>
+        <p><a href="dashboard.html">Skip for now</a></p>
+    </div>
+</body>
+</html>
