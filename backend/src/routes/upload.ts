@@ -1,14 +1,17 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { prisma } from 'prisma/client.js';
-import { authenticate, AuthRequest } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth.js';
+import { prisma } from '../prisma/client.js';
+import type { AuthRequest } from '../middleware/auth.js';
 
 const upload = multer({ dest: 'uploads/' });
 const router = Router();
 
 router.post('/document', authenticate, upload.single('file'), async (req: AuthRequest, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
   const { type } = req.body;
-  const url = `/uploads/${req.file!.filename}`;
+  const url = `/uploads/${req.file.filename}`;
 
   await prisma.document.create({
     data: {
@@ -17,6 +20,7 @@ router.post('/document', authenticate, upload.single('file'), async (req: AuthRe
       url,
     },
   });
+
   res.json({ url });
 });
 
