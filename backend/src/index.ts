@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import authRouter from './routes/auth.js';
-import userRouter from './routes/user.js';
-import loanRouter from './routes/loans.js';  // ← Fixed name
-import uploadRouter from './routes/upload.js';
+import authRouter from './routes/auth';
+import userRouter from './routes/user';
+import loanRouter from './routes/loans';
+import uploadRouter from './routes/upload';
 
 dotenv.config();
 const app = express();

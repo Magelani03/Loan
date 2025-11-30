@@ -52,7 +52,14 @@ const EditProfile = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await api.post("/user/update", form);
+
+    const payload: any = {
+      ...form,
+      age: form.age ? Number(form.age) : null,
+      incomePerAnnum: form.incomePerAnnum ? Number(form.incomePerAnnum) : null,
+    };
+
+    await api.post("/user/update", payload);
     alert("Profile updated!");
     navigate("/profile");
   };

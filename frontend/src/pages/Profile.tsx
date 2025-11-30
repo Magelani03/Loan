@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 import { FileText, ArrowRight, Edit3 } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -10,10 +9,10 @@ interface ProfileData {
   name?: string;
   surname?: string;
   email?: string;
-  document_id_url?: string;
-  document_payslip_url?: string;
-  document_bank_statement_url?: string;
-  document_proof_residence_url?: string;
+  id?: string;
+  payslip?: string;
+  bank_statement?: string;
+  proof_residence?: string;
 }
 
 const Profile = () => {
@@ -24,10 +23,10 @@ const Profile = () => {
   }, []);
 
   const docs = [
-    { label: "Id", url: data.document_id_url },
-    { label: "PaySlip", url: data.document_payslip_url },
-    { label: "Bank Statement", url: data.document_bank_statement_url },
-    { label: "Proof of Residence", url: data.document_proof_residence_url },
+    { label: "Id", url: data.id },
+    { label: "PaySlip", url: data.payslip },
+    { label: "Bank Statement", url: data.bank_statement },
+    { label: "Proof of Residence", url: data.proof_residence },
   ];
 
   return (

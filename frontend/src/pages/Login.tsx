@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 
@@ -18,6 +16,7 @@ const Login = () => {
     });
     const data = await res.json();
     localStorage.setItem("token", data.token);
+    window.dispatchEvent(new Event("auth-changed"));
     navigate("/profile");
   };
 
@@ -33,7 +32,7 @@ const Login = () => {
         <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-muted/30 rounded-xl p-4 mb-4" />
         <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-muted/30 rounded-xl p-4 mb-6" />
         <p className="text-sm text-center text-muted-foreground mb-6">Don't have Account?</p>
-        <Button onClick={handleLogin} className="w-full h-12">Create Account</Button>
+        <Button onClick={handleLogin} className="w-full h-12">Login</Button>
       </div>
     </div>
   );

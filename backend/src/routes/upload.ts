@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { authenticate } from '../middleware/auth.js';
-import { prisma } from '../prisma/client.js';
-import type { AuthRequest } from '../middleware/auth.js';
+import { authenticate } from '../middleware/auth';
+import { prisma } from '../../prisma/client';
+import type { AuthRequest } from '../middleware/auth';
 
 const upload = multer({ dest: 'uploads/' });
 const router = Router();

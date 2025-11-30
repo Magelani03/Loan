@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown, Clock, RefreshCw, CheckCircle, Send } from "lucide-react";
 import { api } from "@/lib/api";
 
@@ -46,7 +45,7 @@ const LoanStatus = () => {
           <h3 className="text-xl font-semibold">Details</h3>
           <p>Reference Number: <span className="font-mono">{loan.reference_number}</span></p>
           <p>Name: {loan.name}</p>
-          <p>Amount: R{loan.amount}</p>
+          <p>Amount: N${loan.amount}</p>
           <p>Date Applied: {loan.date_applied}</p>
         </div>
 
