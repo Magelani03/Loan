@@ -20,14 +20,30 @@ const transport = SMTP_HOST
 export async function sendEmail(to: string, subject: string, html: string) {
   if (!transport) {
     // Fallback for development if SMTP is not configured
-    console.log('Email sending is not configured. Intended email:', { to, subject, html });
+    console.error('Email transport is not configured', {
+      SMTP_HOST,
+      SMTP_PORT,
+      hasUser: Boolean(SMTP_USER),
+      hasPass: Boolean(SMTP_PASS),
+    });
+    console.log('Email sending is not configured. Intended email:', { to, subject });
     return;
   }
 
-  await transport.sendMail({
-    from: EMAIL_FROM || SMTP_USER,
-    to,
-    subject,
-    html,
-  });
+  try {
+    await transport.sendMail({
+      from: EMAIL_FROM || SMTP_USER,
+      to,
+      subject,
+      html,
+    });
+    console.log('Email sent successfully', { to, subject });
+  } catch (err) {
+    console.error('Error sending email via SMTP', {
+      to,
+      subject,
+      error: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
+  }
 }
