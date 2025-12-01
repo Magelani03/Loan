@@ -1,4 +1,6 @@
-const API = "/api";
+// Base URL for the API. In production, set VITE_API_BASE to your Render backend URL,
+// e.g. "https://your-backend.onrender.com/api". Falls back to relative /api for local dev.
+const API = import.meta.env.VITE_API_BASE || "/api";
 
 export const api = {
   async get<T>(path: string): Promise<T> {

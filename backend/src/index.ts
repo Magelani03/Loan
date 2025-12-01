@@ -10,8 +10,10 @@ import { startLoanReminderJob } from './jobs/loanReminders';
 
 const app = express();
 
+// Allow CORS for browser clients (frontend + admin). In production you can
+// restrict this with an env var if needed.
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: true,
   credentials: true,
 }));
 app.use(express.json());
