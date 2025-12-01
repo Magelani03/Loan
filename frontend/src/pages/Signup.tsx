@@ -7,12 +7,34 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const handleSignup = async () => {
-    await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    navigate("/login");
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        // Response was not JSON (e.g. HTML error page or empty body)
+      }
+
+      if (!res.ok) {
+        const message = (data && data.error) || `Signup failed (${res.status} ${res.statusText})`;
+        alert(message);
+        return;
+      }
+
+      alert(
+        (data && data.message) ||
+          "Signup successful. Please check your email to verify your account.",
+      );
+      navigate("/login");
+    } catch (err: any) {
+      alert(err?.message || "Network error during signup");
+    }
   };
 
   return (

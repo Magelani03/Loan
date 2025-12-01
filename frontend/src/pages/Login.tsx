@@ -9,15 +9,32 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    localStorage.setItem("token", data.token);
-    window.dispatchEvent(new Event("auth-changed"));
-    navigate("/profile");
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      let data: any = null;
+      try {
+        data = await res.json();
+      } catch {
+        // Response was not JSON (e.g. HTML error page or empty body)
+      }
+
+      if (!res.ok) {
+        const message = (data && data.error) || `Login failed (${res.status} ${res.statusText})`;
+        alert(message);
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      window.dispatchEvent(new Event("auth-changed"));
+      navigate("/profile");
+    } catch (err: any) {
+      alert(err?.message || "Network error during login");
+    }
   };
 
   return (

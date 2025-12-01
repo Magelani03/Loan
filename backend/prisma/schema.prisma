@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 model User {
@@ -13,6 +13,9 @@ model User {
   surname          String?
   email            String   @unique
   password         String
+  emailVerified    Boolean  @default(false)
+  verificationToken String? @unique
+  verificationTokenExpires DateTime?
   idNumber         String?
   age              Int?
   gender           String?
@@ -28,9 +31,10 @@ model User {
   accountType      String?
   branchCode       String?
   createdAt        DateTime @default(now())
+  role             String   @default("user")
 
-  loans     Loan[]
-  documents Document[]
+  loans      Loan[]
+  documents  Document[]
   guarantors Guarantor[]
 }
 

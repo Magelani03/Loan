@@ -12,21 +12,23 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
   });
   if (!user) return res.status(404).json({ error: 'Not found' });
 
- const docsArray = user.documents;
-type Doc = (typeof docsArray)[number];
+  const docsArray = user.documents;
+  type Doc = (typeof docsArray)[number];
 
-const docs = {
-  id: docsArray.find((d: Doc) => d.type === 'id')?.url,
-  payslip: docsArray.find((d: Doc) => d.type === 'payslip')?.url,
-  bank_statement: docsArray.find((d: Doc) => d.type === 'bank_statement')?.url,
-  proof_residence: docsArray.find((d: Doc) => d.type === 'proof_residence')?.url,
-};
+  const docs = {
+    id: docsArray.find((d: Doc) => d.type === 'id')?.url,
+    payslip: docsArray.find((d: Doc) => d.type === 'payslip')?.url,
+    bank_statement: docsArray.find((d: Doc) => d.type === 'bank_statement')?.url,
+    proof_residence: docsArray.find((d: Doc) => d.type === 'proof_residence')?.url,
+  };
 
+  const avatar = docsArray.find((d: Doc) => d.type === 'avatar')?.url ?? null;
 
   res.json({
     name: user.name,
     surname: user.surname,
     email: user.email,
+    avatar,
     ...docs,
   });
 });

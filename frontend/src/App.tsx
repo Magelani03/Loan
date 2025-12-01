@@ -9,6 +9,7 @@ import EditProfile from './pages/EditProfile'
 import Apply from './pages/Apply'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import VerifyEmail from './pages/VerifyEmail'
 import { Toaster } from './components/ui/toaster'
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/apply" element={<Apply />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="*" element={<div>404 - Not Found</div>} />
       </Routes>
       <Toaster />

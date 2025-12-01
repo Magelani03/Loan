@@ -91,6 +91,12 @@ const Apply = () => {
       .then((loan) => {
         if (!loan || Object.keys(loan).length === 0) {
           setHasExistingLoan(false);
+          return;
+        }
+        const status = (loan as LoanStatusResponse).status?.toLowerCase();
+        // Only treat as "existing loan" if it is still active (not completed or rejected)
+        if (!status || ["complete", "rejected"].includes(status)) {
+          setHasExistingLoan(false);
         } else {
           setHasExistingLoan(true);
         }
@@ -104,8 +110,10 @@ const Apply = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    console.log("Apply: handleSubmit called", form);
 
     if (!form.loanAmount || !form.loanPeriod) {
+      console.log("Apply: missing loan details");
       toast({
         title: "Missing loan details",
         description: "Please enter a loan amount and repayment period.",
@@ -117,6 +125,7 @@ const Apply = () => {
     const periodMonths = Number(form.loanPeriod);
 
     if (Number.isNaN(amount) || Number.isNaN(periodMonths) || amount <= 0 || periodMonths <= 0) {
+      console.log("Apply: invalid amount or period", { amount, periodMonths });
       toast({
         title: "Invalid values",
         description: "Please enter a valid loan amount and repayment period.",
@@ -126,6 +135,7 @@ const Apply = () => {
 
     try {
       setSubmitting(true);
+      console.log("Apply: submitting to backend", { amount, periodMonths });
 
       // 1) Update user profile details
       const userPayload: any = {
@@ -150,7 +160,12 @@ const Apply = () => {
       await api.post("/user/update", userPayload);
 
       // 2) Create the loan
-      await api.post("/loan/apply", { amount, periodMonths });
+      await api.post("/loan/apply", {
+        amount,
+        periodMonths,
+        guarantorName: form.guarantorName || undefined,
+        guarantorContact: form.guarantorContact || undefined,
+      });
 
       // 3) Upload documents if provided
       const uploads: Promise<unknown>[] = [];
@@ -187,6 +202,7 @@ const Apply = () => {
         await Promise.all(uploads);
       }
 
+      console.log("Apply: application submitted successfully");
       toast({
         title: "Application submitted",
         description: "Your loan application has been submitted successfully.",
@@ -194,7 +210,7 @@ const Apply = () => {
 
       navigate("/loan-status");
     } catch (error: any) {
-      console.error(error);
+      console.error("Apply: submit error", error);
       toast({
         title: "Something went wrong",
         description: error?.message || "Please try again.",
