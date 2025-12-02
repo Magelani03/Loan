@@ -59,12 +59,13 @@ export function LoanDetailPage() {
       if (!id) return
       setLoading(true)
       setError(null)
-      try {
-        const data = await get<LoanDetail>(`/admin/loans/${id}`)
-        setLoan(data)
-      } catch (err: any) {
-        setError(err.message || 'Failed to load loan')
-      } finally {
+    try {
+      const data = await get<LoanDetail>(`/admin/loans/${id}`)
+      setLoan(data)
+    } catch (err: any) {
+      console.error('Failed to load loan', err)
+      setError('Failed to load loan. Please try again later.')
+    } finally {
         setLoading(false)
       }
     }
@@ -83,7 +84,8 @@ export function LoanDetailPage() {
       setLoan(updated)
       setDecisionMessage('')
     } catch (err: any) {
-      setError(err.message || 'Failed to submit decision')
+      console.error('Failed to submit decision', err)
+      setError('Failed to submit decision. Please try again.')
     } finally {
       setSubmitting(false)
     }
@@ -100,7 +102,8 @@ export function LoanDetailPage() {
       setLoan(updated)
       setDecisionMessage('')
     } catch (err: any) {
-      setError(err.message || 'Failed to update loan status')
+      console.error('Failed to update loan status', err)
+      setError('Failed to update loan status. Please try again.')
     } finally {
       setSubmitting(false)
     }

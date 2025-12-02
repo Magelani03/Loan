@@ -28,12 +28,14 @@ const VerifyEmail = () => {
           setMessage(res.message || "Your email has been verified. You can now log in.");
         } else {
           setStatus("error");
-          setMessage(res.error || "Verification failed.");
+          setMessage(res.error || "Verification failed. This link may be invalid or expired.");
         }
       })
-      .catch(async (err: any) => {
+      .catch((err: any) => {
+        // Avoid showing raw JSON like {"error":"..."} to the user.
+        console.error("Email verification failed", err);
         setStatus("error");
-        setMessage(err?.message || "Verification failed.");
+        setMessage("Verification failed. This link may be invalid or expired.");
       });
   }, [location.search]);
 

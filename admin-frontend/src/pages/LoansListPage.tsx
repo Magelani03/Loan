@@ -44,7 +44,8 @@ export function LoansListPage() {
         const data = await get<LoanListItem[]>(`/admin/loans?status=${status}`)
         setLoans(data)
       } catch (err: any) {
-        setError(err.message || 'Failed to load loans')
+        console.error('Failed to load loans', err)
+        setError('Failed to load loans. Please try again later.')
       } finally {
         setLoading(false)
       }
