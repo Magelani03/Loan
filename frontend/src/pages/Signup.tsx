@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
 
 const Signup = () => {
   const [form, setForm] = useState({ name: "", surname: "", email: "", password: "" });
@@ -8,28 +9,9 @@ const Signup = () => {
 
   const handleSignup = async () => {
     try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      let data: any = null;
-      try {
-        data = await res.json();
-      } catch {
-        // Response was not JSON (e.g. HTML error page or empty body)
-      }
-
-      if (!res.ok) {
-        const message = (data && data.error) || `Signup failed (${res.status} ${res.statusText})`;
-        alert(message);
-        return;
-      }
-
+      const data = await api.post<{ message?: string; error?: string }>("/auth/signup", form);
       alert(
-        (data && data.message) ||
-          "Signup successful. Please check your email to verify your account.",
+        data.message || "Signup successful. Please check your email to verify your account.",
       );
       navigate("/login");
     } catch (err: any) {

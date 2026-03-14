@@ -1,7 +1,7 @@
-// Base URL for the API. In production, set VITE_API_BASE to your Render backend URL,
-// e.g. "https://your-backend.onrender.com/api". Falls back to relative /api for local dev.
-// Cast import.meta as any so this file doesn't depend on Vite's type declarations being present.
-const API_BASE = ((import.meta as any).env?.VITE_API_BASE as string | undefined) || '/api'
+// Base URL for the API. In production, set VITE_API_BASE to your backend URL including /api,
+// e.g. "https://loan-backend-oyhr.onrender.com/api". Falls back to relative /api for local dev.
+const raw = ((import.meta as any).env?.VITE_API_BASE as string | undefined) || '/api'
+const API_BASE = raw.startsWith('http') && !raw.endsWith('/api') ? `${raw.replace(/\/$/, '')}/api` : raw
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('admin-token')

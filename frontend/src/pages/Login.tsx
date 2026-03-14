@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
+import { api } from "@/lib/api";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -10,25 +11,10 @@ const Login = () => {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const data = await api.post<{ token: string; error?: string }>("/auth/login", {
+        email,
+        password,
       });
-
-      let data: any = null;
-      try {
-        data = await res.json();
-      } catch {
-        // Response was not JSON (e.g. HTML error page or empty body)
-      }
-
-      if (!res.ok) {
-        const message = (data && data.error) || `Login failed (${res.status} ${res.statusText})`;
-        alert(message);
-        return;
-      }
-
       localStorage.setItem("token", data.token);
       window.dispatchEvent(new Event("auth-changed"));
       navigate("/profile");
