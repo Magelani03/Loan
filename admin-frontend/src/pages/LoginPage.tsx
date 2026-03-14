@@ -27,7 +27,7 @@ export function LoginPage() {
         return
       }
       login(res.user, res.token)
-      navigate('/loans', { replace: true })
+      navigate('/', { replace: true })
     } catch (err: any) {
       setError(err.message || 'Login failed')
     } finally {
@@ -36,36 +36,34 @@ export function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <form onSubmit={handleSubmit} style={{ width: 320, padding: 24, border: '1px solid #ddd', borderRadius: 8 }}>
-        <h1 style={{ marginBottom: 16 }}>Admin Login</h1>
-        {error && (
-          <div style={{ marginBottom: 12, color: 'red', fontSize: 14 }}>
-            {error}
-          </div>
-        )}
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>Email</label>
+    <div className="admin-login-wrap">
+      <form onSubmit={handleSubmit} className="admin-login-card">
+        <h1>Admin Login</h1>
+        {error && <div className="admin-error">{error}</div>}
+        <div className="admin-form-group">
+          <label className="admin-label">Email</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            style={{ width: '100%', padding: 8 }}
+            className="admin-search-input"
+            style={{ maxWidth: 'none' }}
           />
         </div>
-        <div style={{ marginBottom: 16 }}>
-          <label style={{ display: 'block', marginBottom: 4 }}>Password</label>
+        <div className="admin-form-group">
+          <label className="admin-label">Password</label>
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            style={{ width: '100%', padding: 8 }}
+            className="admin-search-input"
+            style={{ maxWidth: 'none' }}
           />
         </div>
-        <button type="submit" disabled={loading} style={{ width: '100%', padding: 10 }}>
-          {loading ? 'Logging in...' : 'Login'}
+        <button type="submit" disabled={loading} className="admin-button">
+          {loading ? 'Logging in…' : 'Login'}
         </button>
       </form>
     </div>

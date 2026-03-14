@@ -1,7 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { get, post } from '../lib/api'
-import { useAuth } from '../lib/auth'
 
 interface Document {
   id: string
@@ -21,9 +20,9 @@ interface LoanDetail {
   amount: number
   interestRate: number
   repaymentPeriod: number
-  status: string // raw status from backend: 'pending' | 'approved' | 'rejected' | 'money_sent' | 'payback_ongoing' | 'complete'
+  status: string
   dateApplied: string
-  messages: any[] | null
+  messages: { at?: string; status?: string; message?: string }[] | null
   user: {
     id: string
     name: string | null
@@ -35,18 +34,19 @@ interface LoanDetail {
   }
 }
 
+const statusLabels: Record<string, string> = {
+  pending: 'Pending',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  money_sent: 'Money Sent',
+  payback_ongoing: 'Payback Ongoing',
+  complete: 'Complete',
+}
+
+const STATUS_FLOW = ['pending', 'approved', 'money_sent', 'payback_ongoing', 'complete'] as const
+
 export function LoanDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const { logout } = useAuth()
-
-  const statusLabels: Record<string, string> = {
-    pending: 'Pending',
-    approved: 'Approved',
-    rejected: 'Rejected',
-    money_sent: 'Money Sent',
-    payback_ongoing: 'Payback Ongoing',
-    complete: 'Complete',
-  }
   const navigate = useNavigate()
   const [loan, setLoan] = useState<LoanDetail | null>(null)
   const [loading, setLoading] = useState(false)
@@ -59,13 +59,12 @@ export function LoanDetailPage() {
       if (!id) return
       setLoading(true)
       setError(null)
-    try {
-      const data = await get<LoanDetail>(`/admin/loans/${id}`)
-      setLoan(data)
-    } catch (err: any) {
-      console.error('Failed to load loan', err)
-      setError('Failed to load loan. Please try again later.')
-    } finally {
+      try {
+        const data = await get<LoanDetail>(`/admin/loans/${id}`)
+        setLoan(data)
+      } catch {
+        setError('Failed to load loan. Please try again later.')
+      } finally {
         setLoading(false)
       }
     }
@@ -83,8 +82,7 @@ export function LoanDetailPage() {
       })
       setLoan(updated)
       setDecisionMessage('')
-    } catch (err: any) {
-      console.error('Failed to submit decision', err)
+    } catch {
       setError('Failed to submit decision. Please try again.')
     } finally {
       setSubmitting(false)
@@ -101,8 +99,7 @@ export function LoanDetailPage() {
       })
       setLoan(updated)
       setDecisionMessage('')
-    } catch (err: any) {
-      console.error('Failed to update loan status', err)
+    } catch {
       setError('Failed to update loan status. Please try again.')
     } finally {
       setSubmitting(false)
@@ -110,152 +107,174 @@ export function LoanDetailPage() {
   }
 
   if (loading && !loan) {
-    return <p style={{ padding: 24 }}>Loading...</p>
+    return (
+      <div className="admin-page">
+        <div className="admin-loading">Loading loan…</div>
+      </div>
+    )
   }
 
   if (error && !loan) {
     return (
-      <div style={{ padding: 24 }}>
-        <p style={{ color: 'red' }}>{error}</p>
-        <Link to="/loans">Back to list</Link>
+      <div className="admin-page">
+        <div className="admin-error">{error}</div>
+        <Link to="/loans" className="admin-link">← Back to loans</Link>
       </div>
     )
   }
 
   if (!loan) {
     return (
-      <div style={{ padding: 24 }}>
+      <div className="admin-page">
         <p>Loan not found.</p>
-        <Link to="/loans">Back to list</Link>
+        <Link to="/loans" className="admin-link">← Back to loans</Link>
       </div>
     )
   }
 
-  const user = loan.user;
-  const documents = user?.documents ?? [];
-  const guarantors = user?.guarantors ?? [];
+  const user = loan.user
+  const documents = user?.documents ?? []
+  const guarantors = user?.guarantors ?? []
+  const currentStepIndex = STATUS_FLOW.indexOf(loan.status as typeof STATUS_FLOW[number])
+  const isRejected = loan.status === 'rejected'
 
   return (
-    <div className="admin-shell">
-      <div className="admin-shell-inner" style={{ maxWidth: 900 }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-          <button onClick={() => navigate('/loans')} className="admin-button">
-            d Back to list
-          </button>
-          <button onClick={logout} className="admin-button">
-            Logout
-          </button>
-        </header>
+    <div className="admin-page admin-detail">
+      <div className="admin-detail-back">
+        <Link to="/loans" className="admin-link">← Back to loans</Link>
+      </div>
 
-        <div className="admin-card" style={{ padding: 20, marginBottom: 24 }}>
-          <h1 style={{ marginBottom: 8, fontSize: 22, fontWeight: 700 }}>Loan {loan.referenceNumber}</h1>
-          <p style={{ marginBottom: 8 }}>
-            <strong>Status:</strong> {statusLabels[loan.status] ?? loan.status}
-          </p>
-          {error && <p style={{ color: 'red', margin: 0 }}>{error}</p>}
+      <header className="admin-page-header admin-detail-header">
+        <div>
+          <h1>Loan {loan.referenceNumber}</h1>
+          <p className="admin-page-subtitle">Applied {new Date(loan.dateApplied).toLocaleDateString()}</p>
         </div>
+        <span className={`admin-badge admin-badge--${loan.status.replace('_', '-')} admin-badge--lg`}>
+          {statusLabels[loan.status] ?? loan.status}
+        </span>
+      </header>
 
-      <section className="admin-card" style={{ marginBottom: 24, padding: 20 }}>
-        <h2>Applicant</h2>
-        {user ? (
-          <>
-            <p>
-              {user.name} {user.surname}
-            </p>
-            <p>{user.email}</p>
-            {user.telephone && <p>{user.telephone}</p>}
-          </>
+      {error && <div className="admin-error">{error}</div>}
+
+      {/* Status stepper */}
+      {!isRejected && (
+        <section className="admin-card admin-section">
+          <h2 className="admin-section-title">Status progress</h2>
+          <div className="admin-stepper">
+            {STATUS_FLOW.map((step, idx) => {
+              const done = currentStepIndex > idx || loan.status === step
+              return (
+                <div
+                  key={step}
+                  className={`admin-stepper-item ${done ? 'admin-stepper-item--done' : ''} ${loan.status === step ? 'admin-stepper-item--current' : ''}`}
+                >
+                  <span className="admin-stepper-dot" />
+                  <span className="admin-stepper-label">{statusLabels[step] ?? step}</span>
+                  {idx < STATUS_FLOW.length - 1 && <span className="admin-stepper-line" />}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      <div className="admin-detail-grid">
+        <section className="admin-card admin-section">
+          <h2 className="admin-section-title">Applicant</h2>
+          {user ? (
+            <div className="admin-detail-list">
+              <p><strong>{user.name} {user.surname}</strong></p>
+              <p><a href={`mailto:${user.email}`} className="admin-link">{user.email}</a></p>
+              {user.telephone && <p>{user.telephone}</p>}
+            </div>
+          ) : (
+            <p>Applicant details not available.</p>
+          )}
+        </section>
+
+        <section className="admin-card admin-section">
+          <h2 className="admin-section-title">Loan details</h2>
+          <div className="admin-detail-list">
+            <p><strong>Amount:</strong> N${loan.amount.toLocaleString('en-GB', { minimumFractionDigits: 2 })}</p>
+            <p><strong>Interest rate:</strong> {loan.interestRate}%</p>
+            <p><strong>Repayment period:</strong> {loan.repaymentPeriod} months</p>
+          </div>
+        </section>
+      </div>
+
+      <section className="admin-card admin-section">
+        <h2 className="admin-section-title">Documents</h2>
+        {documents.length === 0 ? (
+          <p className="admin-muted">No documents uploaded.</p>
         ) : (
-          <p>Applicant details not available.</p>
+          <div className="admin-doc-list">
+            {documents.map((doc) => (
+              <a
+                key={doc.id}
+                href={doc.url}
+                target="_blank"
+                rel="noreferrer"
+                className="admin-doc-link"
+              >
+                {doc.type} — View
+              </a>
+            ))}
+          </div>
         )}
       </section>
 
-      <section className="admin-card" style={{ marginBottom: 24, padding: 20 }}>
-        <h2>Loan Details</h2>
-        <p>Amount: {loan.amount.toFixed(2)}</p>
-        <p>Interest rate: {loan.interestRate}%</p>
-        <p>Repayment period: {loan.repaymentPeriod} months</p>
-        <p>Date applied: {new Date(loan.dateApplied).toLocaleDateString()}</p>
+      <section className="admin-card admin-section">
+        <h2 className="admin-section-title">Guarantors</h2>
+        {guarantors.length === 0 ? (
+          <p className="admin-muted">No guarantors.</p>
+        ) : (
+          <ul className="admin-detail-list">
+            {guarantors.map((g) => (
+              <li key={g.id}>{g.name} — {g.contact}</li>
+            ))}
+          </ul>
+        )}
       </section>
 
-      <section className="admin-card" style={{ marginBottom: 24, padding: 20 }}>
-        <h2>Documents</h2>
-        {documents.length === 0 && <p>No documents uploaded.</p>}
-        <ul>
-          {documents.map((doc) => (
-            <li key={doc.id}>
-              {doc.type}: <a href={doc.url} target="_blank" rel="noreferrer">View</a>
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="admin-card" style={{ marginBottom: 24, padding: 20 }}>
-        <h2>Guarantors</h2>
-        {guarantors.length === 0 && <p>No guarantors.</p>}
-        <ul>
-          {guarantors.map((g) => (
-            <li key={g.id}>
-              {g.name} - {g.contact}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section className="admin-card" style={{ marginBottom: 24, padding: 20 }}>
-        <h2>Messages</h2>
-        {(!loan.messages || loan.messages.length === 0) && <p>No messages.</p>}
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-          {loan.messages &&
-            loan.messages.map((m: any, idx) => (
-              <li
-                key={idx}
-                style={{
-                  padding: '8px 10px',
-                  borderRadius: 8,
-                  background: 'rgba(15,23,42,0.25)',
-                  marginTop: idx === 0 ? 8 : 4,
-                  fontSize: 13,
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
-                  <span style={{ opacity: 0.8 }}>
-                    {m.at ? new Date(m.at).toLocaleString() : 'Unknown time'}
-                  </span>
-                  <span style={{ fontWeight: 600 }}>
-                    {m.status ?? 'note'}
-                  </span>
-                </div>
-                {m.message && <div>{m.message}</div>}
-                {!m.message && <div style={{ opacity: 0.85 }}>{JSON.stringify(m)}</div>}
+      <section className="admin-card admin-section">
+        <h2 className="admin-section-title">Activity log</h2>
+        {(!loan.messages || loan.messages.length === 0) ? (
+          <p className="admin-muted">No activity yet.</p>
+        ) : (
+          <ul className="admin-activity-list">
+            {loan.messages.map((m, idx) => (
+              <li key={idx} className="admin-activity-item">
+                <span className="admin-activity-meta">
+                  {m.at ? new Date(m.at).toLocaleString() : '—'} · {m.status ?? 'note'}
+                </span>
+                {(m.message || (m as any).message) && (
+                  <div className="admin-activity-body">{(m.message ?? (m as any).message) as string}</div>
+                )}
               </li>
             ))}
-        </ul>
+          </ul>
+        )}
       </section>
 
-      <section className="admin-card" style={{ padding: 20 }}>
-        <h2>Decision & Status</h2>
-        <form
-          onSubmit={(e: FormEvent) => {
-            e.preventDefault()
-          }}
-        >
-          <div style={{ marginBottom: 12 }}>
-            <label style={{ display: 'block', marginBottom: 4 }}>Message (optional)</label>
+      <section className="admin-card admin-section">
+        <h2 className="admin-section-title">Decision & status</h2>
+        <form onSubmit={(e: FormEvent) => e.preventDefault()}>
+          <div className="admin-form-group">
+            <label className="admin-label">Message (optional)</label>
             <textarea
               value={decisionMessage}
               onChange={(e) => setDecisionMessage(e.target.value)}
               rows={3}
-              style={{ width: '100%', padding: 8 }}
+              className="admin-textarea"
+              placeholder="Add a note for this action…"
             />
           </div>
-          {/* Initial decision buttons */}
-          <div style={{ marginBottom: 12 }}>
+          <div className="admin-actions">
             <button
               type="button"
               onClick={() => handleDecision('approved')}
               disabled={submitting || loan.status !== 'pending'}
-              style={{ marginRight: 8, padding: '6px 12px' }}
+              className="admin-btn admin-btn--success"
             >
               Approve
             </button>
@@ -263,42 +282,39 @@ export function LoanDetailPage() {
               type="button"
               onClick={() => handleDecision('rejected')}
               disabled={submitting || loan.status !== 'pending'}
-              style={{ padding: '6px 12px' }}
+              className="admin-btn admin-btn--danger"
             >
               Reject
             </button>
           </div>
-
-          {/* Lifecycle buttons after approval */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <div className="admin-actions admin-actions--secondary">
             <button
               type="button"
               onClick={() => handleStatusUpdate('money-sent')}
               disabled={submitting || loan.status !== 'approved'}
-              style={{ padding: '6px 12px' }}
+              className="admin-btn"
             >
-              Mark Money Sent
+              Mark money sent
             </button>
             <button
               type="button"
               onClick={() => handleStatusUpdate('payback-ongoing')}
               disabled={submitting || !['money_sent', 'approved'].includes(loan.status)}
-              style={{ padding: '6px 12px' }}
+              className="admin-btn"
             >
-              Mark Payback Ongoing
+              Mark payback ongoing
             </button>
             <button
               type="button"
               onClick={() => handleStatusUpdate('complete')}
               disabled={submitting || !['payback_ongoing', 'money_sent', 'approved'].includes(loan.status)}
-              style={{ padding: '6px 12px' }}
+              className="admin-btn"
             >
-              Mark Complete
+              Mark complete
             </button>
           </div>
         </form>
       </section>
-      </div>
     </div>
   )
 }

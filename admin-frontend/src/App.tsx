@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { LoginPage } from './pages/LoginPage'
+import { DashboardPage } from './pages/DashboardPage'
 import { LoansListPage } from './pages/LoansListPage'
 import { LoanDetailPage } from './pages/LoanDetailPage'
+import { AdminLayout } from './components/AdminLayout'
 import { useAuth } from './lib/auth'
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
@@ -17,22 +19,18 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route
-        path="/loans"
+        path="/"
         element={
           <ProtectedRoute>
-            <LoansListPage />
+            <AdminLayout />
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/loans/:id"
-        element={
-          <ProtectedRoute>
-            <LoanDetailPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<Navigate to="/loans" replace />} />
+      >
+        <Route index element={<DashboardPage />} />
+        <Route path="loans" element={<LoansListPage />} />
+        <Route path="loans/:id" element={<LoanDetailPage />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

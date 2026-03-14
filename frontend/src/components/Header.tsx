@@ -54,11 +54,11 @@ export const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
             <div className="h-8 w-8 rounded-full bg-primary text-background flex items-center justify-center text-lg font-bold">
-              L
+              A
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-foreground">LOAN</span>
-              <span className="text-xs text-muted-foreground">financially Health</span>
+              <span className="text-xl font-bold text-foreground">AUNTY D</span>
+              <span className="text-xs text-muted-foreground">Financial Health</span>
             </div>
           </Link>
 
@@ -120,10 +120,12 @@ export const Header = () => {
                 <Link
                   to="/profile"
                   className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive("/profile") ? "text-primary" : "text-foreground"
+                    isActive("/profile") || isActive("/account-details") || isActive("/edit-profile")
+                      ? "text-primary"
+                      : "text-foreground"
                   }`}
                 >
-                  Profile
+                  My Account
                 </Link>
                 <Link
                   to="/loan-status"
@@ -140,14 +142,6 @@ export const Header = () => {
                   }`}
                 >
                   History
-                </Link>
-                <Link
-                  to="/account-details"
-                  className={`text-sm font-medium transition-colors hover:text-primary ${
-                    isActive("/account-details") ? "text-primary" : "text-foreground"
-                  }`}
-                >
-                  Account Details
                 </Link>
               </>
             )}
@@ -170,19 +164,9 @@ export const Header = () => {
                 </Button>
               </>
             ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hidden md:flex"
-                  onClick={() => navigate("/profile")}
-                >
-                  My Account
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
-                  Logout
-                </Button>
-              </>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                Logout
+              </Button>
             )}
           </div>
         </div>

@@ -6,9 +6,15 @@ import { FeatureCard } from "@/components/FeatureCard";
 import { Button } from "@/components/ui/button";
 import { Award, Wrench, Headphones, MapPin } from "lucide-react";
 import heroImage from "@/assets/hero-villa.jpg";
-import meetingImage from "@/assets/business-meeting.jpg";
+import whyChooseImage from "@/assets/finance-savings.png";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
+
+// Set VITE_OFFICE_ADDRESS in .env to your office address (used for "Get directions").
+const OFFICE_ADDRESS =
+  (import.meta as any).env?.VITE_OFFICE_ADDRESS as string | undefined ||
+  "123 Financial Street, Suite 100, New York, NY 10001";
 
 interface HomeStats {
   totalLoans: number;
@@ -23,6 +29,7 @@ interface HomeStats {
 }
 
 const Index = () => {
+  const { toast } = useToast();
   const [stats, setStats] = useState<HomeStats | null>(null);
 
   useEffect(() => {
@@ -45,6 +52,16 @@ const Index = () => {
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
     }
+  };
+
+  const handleFinderClick = () => {
+    const destination = encodeURIComponent(OFFICE_ADDRESS);
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+    toast({
+      title: "Directions opened",
+      description: "Google Maps opened. Choose your starting point or use “My location” there.",
+    });
   };
 
   return (
@@ -89,8 +106,8 @@ const Index = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="relative h-[500px] rounded-2xl overflow-hidden">
               <img 
-                src={meetingImage} 
-                alt="Professional business meeting"
+                src={whyChooseImage} 
+                alt="Finance, savings and planning"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -147,12 +164,14 @@ const Index = () => {
             <div className="bg-muted rounded-2xl p-12 flex flex-col justify-center items-center text-center">
               <MapPin className="h-16 w-16 text-primary mb-4" />
               <h2 className="text-4xl font-bold text-foreground mb-6">
-                Find Office
+                Find our office
               </h2>
               <p className="text-muted-foreground mb-6">
-                Locate our nearest branch and visit us for personalized assistance.
+                Visit us for personalized assistance. Get directions to our office.
               </p>
-              <Button variant="outline" size="lg">Finder</Button>
+              <Button variant="outline" size="lg" onClick={handleFinderClick}>
+                Get directions
+              </Button>
             </div>
           </div>
         </div>

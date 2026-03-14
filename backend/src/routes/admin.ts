@@ -29,6 +29,55 @@ async function appendStatusMessage(loanId: string, byUserId: string | undefined,
   });
 }
 
+// GET /api/admin/stats — dashboard overview (handler used by router and by index.ts)
+export async function statsHandler(_req: AuthRequest, res: import('express').Response) {
+  try {
+    const [counts, totalApprovedAmount, totalPendingAmount, recentLoans] = await Promise.all([
+      prisma.loan.groupBy({
+        by: ['status'],
+        _count: { id: true },
+      }),
+      prisma.loan.aggregate({
+        where: { status: { in: ['approved', 'money_sent', 'payback_ongoing', 'complete'] } },
+        _sum: { amount: true },
+      }),
+      prisma.loan.aggregate({
+        where: { status: 'pending' },
+        _sum: { amount: true },
+      }),
+      prisma.loan.findMany({
+        take: 5,
+        orderBy: { dateApplied: 'desc' },
+        include: {
+          user: { select: { name: true, surname: true, email: true } },
+        },
+      }),
+    ]);
+
+    const byStatus: Record<string, number> = {};
+    counts.forEach((c) => { byStatus[c.status] = c._count.id; });
+
+    res.json({
+      byStatus,
+      totalApprovedAmount: totalApprovedAmount._sum.amount ?? 0,
+      totalPendingAmount: totalPendingAmount._sum.amount ?? 0,
+      recentLoans: recentLoans.map((l) => ({
+        id: l.id,
+        referenceNumber: l.referenceNumber,
+        amount: l.amount,
+        status: l.status,
+        dateApplied: l.dateApplied instanceof Date ? l.dateApplied.toISOString() : l.dateApplied,
+        user: l.user,
+      })),
+    });
+  } catch (err) {
+    console.error('Admin stats error:', err);
+    res.status(500).json({ error: 'Failed to load stats' });
+  }
+}
+
+router.get('/stats', authenticate, adminOnly, statsHandler);
+
 // GET /api/admin/loans?status=pending|approved|rejected|all
 router.get('/loans', authenticate, adminOnly, async (req: AuthRequest, res) => {
   const status = (req.query.status as string) || 'pending';

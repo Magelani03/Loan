@@ -5,7 +5,8 @@ import authRouter from './routes/auth';
 import userRouter from './routes/user';
 import loanRouter from './routes/loans';
 import uploadRouter from './routes/upload';
-import adminRouter from './routes/admin';
+import adminRouter, { statsHandler } from './routes/admin';
+import { authenticate, adminOnly } from './middleware/auth';
 import { startLoanReminderJob } from './jobs/loanReminders';
 
 const app = express();
@@ -23,6 +24,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 app.use('/api/loan', loanRouter);
 app.use('/api/upload', uploadRouter);
+// Register stats explicitly so GET /api/admin/stats is always available
+app.get('/api/admin/stats', authenticate, adminOnly, statsHandler);
 app.use('/api/admin', adminRouter);
 
 const PORT = process.env.PORT ?? 4000;
