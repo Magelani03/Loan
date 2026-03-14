@@ -1,8 +1,13 @@
-// Base URL for the API. In production, set VITE_API_BASE to your backend URL including /api,
-// e.g. "https://loan-backend-oyhr.onrender.com/api". Falls back to relative /api for local dev.
-// Cast import.meta as any so this file doesn't depend on Vite's type declarations being present.
+// Base URL for the API. Set VITE_API_BASE to your backend URL, e.g. "https://loan-backend-oyhr.onrender.com/api"
+// (use https:// with two slashes). Paths like /auth/login are appended automatically.
 const raw = ((import.meta as any).env?.VITE_API_BASE as string | undefined) || "/api";
-const API = raw.startsWith("http") && !raw.endsWith("/api") ? `${raw.replace(/\/$/, "")}/api` : raw;
+const normalized = raw.startsWith("http") && raw.includes("/api")
+  ? raw.replace(/(\/api).*$/, "$1")
+  : raw;
+const API =
+  normalized.startsWith("http") && !normalized.endsWith("/api")
+    ? `${normalized.replace(/\/$/, "")}/api`
+    : normalized;
 
 export const api = {
   async get<T>(path: string): Promise<T> {

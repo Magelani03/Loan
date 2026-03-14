@@ -15,8 +15,8 @@
 4. **Environment variables**
    - In the Vercel project: **Settings** → **Environment Variables**.
    - Add:
-     - **`VITE_API_BASE`** = your backend URL **including** `/api`, e.g. `https://loan-backend-oyhr.onrender.com/api`  
-       (If you omit `/api`, the app will add it automatically. No trailing slash.)
+     - **`VITE_API_BASE`** = backend base URL only: `https://loan-backend-oyhr.onrender.com/api`  
+       Use **two slashes** in `https://`. Do **not** add `/auth/login` or any path—the app adds paths itself.
    - Add if you use them:
      - **`VITE_OFFICE_ADDRESS`** = your office address for the “Get directions” link.
 

@@ -1,7 +1,13 @@
-// Base URL for the API. In production, set VITE_API_BASE to your backend URL including /api,
-// e.g. "https://loan-backend-oyhr.onrender.com/api". Falls back to relative /api for local dev.
+// Base URL for the API. Set VITE_API_BASE to your backend URL, e.g. "https://loan-backend-oyhr.onrender.com/api"
+// (use https:// with two slashes). Paths like /auth/login are appended automatically.
 const raw = ((import.meta as any).env?.VITE_API_BASE as string | undefined) || '/api'
-const API_BASE = raw.startsWith('http') && !raw.endsWith('/api') ? `${raw.replace(/\/$/, '')}/api` : raw
+const normalized = raw.startsWith('http') && raw.includes('/api')
+  ? raw.replace(/(\/api).*$/, '$1')
+  : raw
+const API_BASE =
+  normalized.startsWith('http') && !normalized.endsWith('/api')
+    ? `${normalized.replace(/\/$/, '')}/api`
+    : normalized
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('admin-token')
