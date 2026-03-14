@@ -9,6 +9,14 @@ const API =
     ? `${normalized.replace(/\/$/, "")}/api`
     : normalized;
 
+/** Turn a relative document URL (e.g. /uploads/xyz) into a full URL on the backend. */
+export function documentUrl(path: string | undefined): string {
+  if (!path) return "#";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  const origin = API.startsWith("http") ? API.replace(/\/api\/?$/, "") : "http://localhost:4000";
+  return `${origin}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 export const api = {
   async get<T>(path: string): Promise<T> {
     const token = localStorage.getItem("token");

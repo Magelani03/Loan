@@ -9,6 +9,20 @@ const API_BASE =
     ? `${normalized.replace(/\/$/, '')}/api`
     : normalized
 
+/** Backend origin (no /api) for building absolute URLs to uploads/documents. */
+export function getBackendOrigin(): string {
+  if (API_BASE.startsWith('http')) return API_BASE.replace(/\/api\/?$/, '')
+  return 'http://localhost:4000'
+}
+
+/** Turn a relative document URL (e.g. /uploads/xyz) into a full URL on the backend. */
+export function documentUrl(path: string): string {
+  if (!path) return path
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  const origin = getBackendOrigin()
+  return `${origin}${path.startsWith('/') ? path : `/${path}`}`
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('admin-token')
 

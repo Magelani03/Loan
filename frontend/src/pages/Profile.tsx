@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FileText, ArrowRight, Edit3 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, documentUrl } from "@/lib/api";
 
 type DocType = "id" | "payslip" | "bank_statement" | "proof_residence";
 
@@ -131,7 +131,7 @@ const Profile = () => {
                 className="bg-muted/50 rounded-xl p-6 flex flex-col items-center gap-2 hover:bg-muted transition"
               >
                 <a
-                  href={doc.url ?? "#"}
+                  href={documentUrl(doc.url)}
                   target={doc.url ? "_blank" : undefined}
                   rel={doc.url ? "noopener noreferrer" : undefined}
                   className="flex flex-col items-center gap-2"

@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { get, post } from '../lib/api'
+import { get, post, documentUrl } from '../lib/api'
 
 interface Document {
   id: string
@@ -211,7 +211,7 @@ export function LoanDetailPage() {
             {documents.map((doc) => (
               <a
                 key={doc.id}
-                href={doc.url}
+                href={documentUrl(doc.url)}
                 target="_blank"
                 rel="noreferrer"
                 className="admin-doc-link"
