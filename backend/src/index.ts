@@ -1,4 +1,5 @@
 import './config/env';
+import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import authRouter from './routes/auth';
@@ -18,7 +19,14 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static('uploads', {
+  setHeaders: (res, filePath) => {
+    const ext = filePath ? path.extname(filePath).toLowerCase() : '';
+    if (!ext || !['.pdf', '.jpg', '.jpeg', '.png', '.gif', '.webp'].includes(ext)) {
+      res.setHeader('Content-Type', 'application/pdf');
+    }
+  },
+}));
 
 app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
