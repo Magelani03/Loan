@@ -10,6 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 const SALT = 10;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const isDev = process.env.NODE_ENV !== 'production';
+const verificationDisabled = process.env.DISABLE_EMAIL_VERIFY === 'true';
 
 router.post('/signup', async (req, res) => {
   try {
@@ -20,9 +21,9 @@ router.post('/signup', async (req, res) => {
     }
 
     const emailConfigured = isEmailConfigured();
-    const skipEmailVerify = isDev && !emailConfigured;
+    const skipEmailVerify = verificationDisabled || (isDev && !emailConfigured);
 
-    if (!isDev && !emailConfigured) {
+    if (!verificationDisabled && !isDev && !emailConfigured) {
       return res.status(503).json({
         error: 'Verification email is not configured. Please set SMTP_HOST, SMTP_USER, and SMTP_PASS on the server.',
       });
@@ -48,7 +49,9 @@ router.post('/signup', async (req, res) => {
       if (skipEmailVerify) {
         return res.json({
           ok: true,
-          message: 'Account created. (Email verification is skipped in development.) You can log in now.',
+          message: verificationDisabled
+            ? 'Account created. You can log in now.'
+            : 'Account created. (Email verification is skipped in development.) You can log in now.',
         });
       }
 
@@ -92,7 +95,7 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  const skipVerify = process.env.SKIP_EMAIL_VERIFY === 'true';
+  const skipVerify = verificationDisabled || process.env.SKIP_EMAIL_VERIFY === 'true';
   if (user.emailVerified === false && !skipVerify) {
     return res.status(403).json({ error: 'Please verify your email address before logging in.' });
   }
