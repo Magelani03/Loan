@@ -30,7 +30,7 @@ async function appendStatusMessage(loanId: string, byUserId: string | undefined,
 }
 
 // GET /api/admin/stats — dashboard overview (handler used by router and by index.ts)
-export async function statsHandler(_req: AuthRequest, res: import('express').Response) {
+export async function statsHandler(_req: import('express').Request, res: import('express').Response) {
   try {
     const [counts, totalApprovedAmount, totalPendingAmount, recentLoans] = await Promise.all([
       prisma.loan.groupBy({

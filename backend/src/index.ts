@@ -33,7 +33,7 @@ app.use('/api/user', userRouter);
 app.use('/api/loan', loanRouter);
 app.use('/api/upload', uploadRouter);
 // Register stats explicitly so GET /api/admin/stats is always available
-app.get('/api/admin/stats', authenticate, adminOnly, statsHandler);
+app.get('/api/admin/stats', ...[authenticate, adminOnly, statsHandler] as express.RequestHandler[]);
 app.use('/api/admin', adminRouter);
 
 const PORT = process.env.PORT ?? 4000;
