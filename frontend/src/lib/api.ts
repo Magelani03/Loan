@@ -74,6 +74,11 @@ export const api = {
       } catch {
         /* use text */
       }
+      if (res.status === 405) {
+        message = `405 Method Not Allowed. The request may be hitting the wrong server. Set VITE_API_BASE to your backend URL (e.g. https://your-backend.onrender.com/api).`;
+      } else if (res.status === 404 && message === text && text.length < 100) {
+        message = `404 Not Found. Check that VITE_API_BASE points to your backend (e.g. https://your-backend.onrender.com/api).`;
+      }
       throw new Error(message);
     }
     return res.json();
