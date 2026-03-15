@@ -92,12 +92,47 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  if (user.emailVerified === false) {
+  const skipVerify = process.env.SKIP_EMAIL_VERIFY === 'true';
+  if (user.emailVerified === false && !skipVerify) {
     return res.status(403).json({ error: 'Please verify your email address before logging in.' });
   }
 
   const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
   res.json({ token, user: { id: user.id, email, name: user.name, role: user.role } });
+});
+
+// Resend verification email (no auth required)
+router.post('/resend-verification', async (req, res) => {
+  const { email } = req.body ?? {};
+  if (!email || typeof email !== 'string') {
+    return res.status(400).json({ error: 'Email is required.' });
+  }
+  const normalized = String(email).trim();
+  const user = await prisma.user.findFirst({ where: { email: { equals: normalized, mode: 'insensitive' } } });
+  if (!user) {
+    return res.json({ message: 'If an account exists for this email, a new verification link was sent. Check your inbox and spam.' });
+  }
+  if (user.emailVerified) {
+    return res.json({ message: 'This email is already verified. You can log in.' });
+  }
+  if (!isEmailConfigured()) {
+    return res.status(503).json({ error: 'Verification email is not configured on the server.' });
+  }
+  const verificationToken = crypto.randomBytes(32).toString('hex');
+  const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { verificationToken, verificationTokenExpires },
+  });
+  const verifyLink = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
+  const emailHtml = `<p>Hi ${user.name ?? ''},</p>
+     <p>Please confirm your email address by clicking the link below:</p>
+     <p><a href="${verifyLink}">Verify Email</a></p>
+     <p>If you did not request this, you can ignore this email.</p>`;
+  res.json({ message: 'If an account exists for this email, a new verification link was sent. Check your inbox and spam.' });
+  sendEmail(user.email, 'Verify your email address', emailHtml).catch((err) => {
+    console.error('Resend verification email failed:', err?.message || err);
+  });
 });
 
 router.get('/verify-email', async (req, res) => {
