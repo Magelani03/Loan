@@ -8,6 +8,10 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const handleSignup = async () => {
+    if (!form.email?.trim() || !form.password?.trim()) {
+      alert("Email and password are required.");
+      return;
+    }
     try {
       const data = await api.post<{ message?: string; error?: string }>("/auth/signup", form);
       alert(

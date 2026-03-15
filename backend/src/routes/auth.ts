@@ -49,7 +49,13 @@ router.post('/signup', async (req, res) => {
       res.json({ ok: true, message: 'Signup successful. Please check your email to verify your account.' });
     } catch (e: any) {
       console.error('Error during /signup persistence/email:', e);
-      res.status(400).json({ error: e.message || 'Failed to create user.' });
+      const isDuplicateEmail =
+        e?.code === 'P2002' ||
+        (typeof e?.message === 'string' && e.message.toLowerCase().includes('unique constraint'));
+      const message = isDuplicateEmail
+        ? 'This email is already registered. Try logging in or use a different email.'
+        : (e?.message || 'Failed to create user.');
+      res.status(400).json({ error: message });
     }
   } catch (e: any) {
     console.error('Unexpected error in /signup handler:', e);

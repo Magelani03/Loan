@@ -23,7 +23,17 @@ export const api = {
     const res = await fetch(`${API}${path}`, {
       headers: { Authorization: token ? `Bearer ${token}` : "" },
     });
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) {
+      const text = await res.text();
+      let message = text;
+      try {
+        const json = JSON.parse(text);
+        if (json?.error) message = json.error;
+      } catch {
+        /* use text */
+      }
+      throw new Error(message);
+    }
     return res.json();
   },
 
@@ -55,7 +65,17 @@ export const api = {
     }
 
     const res = await fetch(`${API}${path}`, fetchOptions);
-    if (!res.ok) throw new Error(await res.text());
+    if (!res.ok) {
+      const text = await res.text();
+      let message = text;
+      try {
+        const json = JSON.parse(text);
+        if (json?.error) message = json.error;
+      } catch {
+        /* use text */
+      }
+      throw new Error(message);
+    }
     return res.json();
   },
 };
