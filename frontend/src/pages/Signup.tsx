@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -10,6 +10,7 @@ const Signup = () => {
   const [success, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
+  const timedOutRef = useRef(false);
   const handleSignup = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!form.email?.trim() || !form.password?.trim()) {
@@ -18,16 +19,29 @@ const Signup = () => {
     }
     setError(null);
     setLoading(true);
+    timedOutRef.current = false;
+    const timeoutMs = 20000;
+    const timeoutId = window.setTimeout(() => {
+      timedOutRef.current = true;
+      setLoading(false);
+      setError(
+        "Request is taking longer than usual. Your account may have been created — try logging in, or try again.",
+      );
+    }, timeoutMs);
     try {
       const data = await api.post<{ message?: string; error?: string }>("/auth/signup", form);
+      if (timedOutRef.current) return;
+      clearTimeout(timeoutId);
       setSuccessMessage(
         data.message || "Account created. Please check your email to verify your account.",
       );
       setSuccess(true);
     } catch (err: any) {
+      if (timedOutRef.current) return;
+      clearTimeout(timeoutId);
       setError(err?.message || "Network error during signup");
     } finally {
-      setLoading(false);
+      if (!timedOutRef.current) setLoading(false);
     }
   };
 

@@ -53,17 +53,17 @@ router.post('/signup', async (req, res) => {
       }
 
       const verifyLink = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
-
-      await sendEmail(
-        email,
-        'Verify your email address',
-        `<p>Hi ${name ?? ''},</p>
+      const emailHtml = `<p>Hi ${name ?? ''},</p>
          <p>Thanks for signing up. Please confirm your email address by clicking the link below:</p>
          <p><a href="${verifyLink}">Verify Email</a></p>
-         <p>If you did not create an account, you can ignore this email.</p>`,
-      );
+         <p>If you did not create an account, you can ignore this email.</p>`;
 
+      // Send response immediately so the user sees success; send email in background
       res.json({ ok: true, message: 'Signup successful. Please check your email to verify your account.' });
+
+      sendEmail(email, 'Verify your email address', emailHtml).catch((err) => {
+        console.error('Background verification email failed:', err?.message || err);
+      });
     } catch (e: any) {
       console.error('Error during /signup persistence/email:', e);
       if (e?.message === 'EMAIL_NOT_CONFIGURED') {
