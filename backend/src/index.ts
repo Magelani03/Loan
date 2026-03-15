@@ -1,3 +1,7 @@
+import dns from 'dns';
+// Prefer IPv4 for outbound connections (avoids ENETUNREACH to Gmail etc. on hosts with broken IPv6)
+dns.setDefaultResultOrder('ipv4first');
+
 import './config/env';
 import path from 'path';
 import express from 'express';
