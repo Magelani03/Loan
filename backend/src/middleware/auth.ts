@@ -30,8 +30,9 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
 };
 
 export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
-  if (!req.user || req.user.role !== 'admin') {
-    return res.status(403).json({ error: 'Admin only' });
+  const role = (req.user?.role ?? '').toLowerCase();
+  if (!req.user || role !== 'admin') {
+    return res.status(403).json({ error: 'This user is not an admin.' });
   }
   next();
 };

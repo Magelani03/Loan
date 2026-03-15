@@ -101,7 +101,8 @@ router.post('/login', async (req, res) => {
   }
 
   const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
-  res.json({ token, user: { id: user.id, email, name: user.name, role: user.role } });
+  const role = (user.role ?? 'user').toLowerCase();
+  res.json({ token, user: { id: user.id, email, name: user.name, role } });
 });
 
 // Resend verification email (no auth required)

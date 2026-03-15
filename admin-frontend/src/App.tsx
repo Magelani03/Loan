@@ -8,7 +8,7 @@ import { useAuth } from './lib/auth'
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { user, token } = useAuth()
-  if (!token || !user || user.role !== 'admin') {
+  if (!token || !user || (user.role ?? '').toLowerCase() !== 'admin') {
     return <Navigate to="/login" replace />
   }
   return children

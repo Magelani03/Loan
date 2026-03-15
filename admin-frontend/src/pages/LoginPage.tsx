@@ -22,7 +22,8 @@ export function LoginPage() {
     setLoading(true)
     try {
       const res = await post<LoginResponse>('/auth/login', { email, password })
-      if (!res.user || res.user.role !== 'admin') {
+      const role = (res.user?.role ?? '').toLowerCase()
+      if (!res.user || role !== 'admin') {
         setError('This user is not an admin.')
         return
       }
