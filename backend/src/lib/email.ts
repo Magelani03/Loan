@@ -17,17 +17,15 @@ const transport = SMTP_HOST
     })
   : null;
 
-export async function sendEmail(to: string, subject: string, html: string) {
+export function isEmailConfigured(): boolean {
+  return Boolean(transport);
+}
+
+export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   if (!transport) {
-    // Fallback for development if SMTP is not configured
-    console.error('Email transport is not configured', {
-      SMTP_HOST,
-      SMTP_PORT,
-      hasUser: Boolean(SMTP_USER),
-      hasPass: Boolean(SMTP_PASS),
-    });
-    console.log('Email sending is not configured. Intended email:', { to, subject });
-    return;
+    console.error('Email transport is not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS (and optionally SMTP_PORT, EMAIL_FROM).');
+    console.log('Intended email:', { to, subject });
+    throw new Error('EMAIL_NOT_CONFIGURED');
   }
 
   try {

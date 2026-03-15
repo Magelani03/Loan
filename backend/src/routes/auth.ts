@@ -3,12 +3,13 @@ import { prisma } from '../../prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-import { sendEmail } from '../lib/email';
+import { sendEmail, isEmailConfigured } from '../lib/email';
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET!;
 const SALT = 10;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const isDev = process.env.NODE_ENV !== 'production';
 
 router.post('/signup', async (req, res) => {
   try {
@@ -16,6 +17,15 @@ router.post('/signup', async (req, res) => {
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const emailConfigured = isEmailConfigured();
+    const skipEmailVerify = isDev && !emailConfigured;
+
+    if (!isDev && !emailConfigured) {
+      return res.status(503).json({
+        error: 'Verification email is not configured. Please set SMTP_HOST, SMTP_USER, and SMTP_PASS on the server.',
+      });
     }
 
     const hashed = await bcrypt.hash(String(password), SALT);
@@ -29,11 +39,18 @@ router.post('/signup', async (req, res) => {
           surname,
           email,
           password: hashed,
-          emailVerified: false,
-          verificationToken,
-          verificationTokenExpires,
+          emailVerified: skipEmailVerify,
+          verificationToken: skipEmailVerify ? null : verificationToken,
+          verificationTokenExpires: skipEmailVerify ? null : verificationTokenExpires,
         },
       });
+
+      if (skipEmailVerify) {
+        return res.json({
+          ok: true,
+          message: 'Account created. (Email verification is skipped in development.) You can log in now.',
+        });
+      }
 
       const verifyLink = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
@@ -49,6 +66,11 @@ router.post('/signup', async (req, res) => {
       res.json({ ok: true, message: 'Signup successful. Please check your email to verify your account.' });
     } catch (e: any) {
       console.error('Error during /signup persistence/email:', e);
+      if (e?.message === 'EMAIL_NOT_CONFIGURED') {
+        return res.status(503).json({
+          error: 'Verification email could not be sent. The server email settings are not configured.',
+        });
+      }
       const isDuplicateEmail =
         e?.code === 'P2002' ||
         (typeof e?.message === 'string' && e.message.toLowerCase().includes('unique constraint'));

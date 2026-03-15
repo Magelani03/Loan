@@ -40,9 +40,27 @@ The admin app is in **`admin-frontend`**. You can:
 
 ## Backend (not on Vercel)
 
-Vercel runs serverless functions, not a long-running Node server. Deploy the **backend** elsewhere:
+Vercel runs serverless functions, not a long-running Node server. Deploy the **backend** elsewhere (e.g. Render, Railway, Fly.io). Set Root Directory to **`backend`**, then add environment variables.
 
-- **Render**: connect the repo, set Root Directory to `backend`, use `npm install && npx prisma generate && npm run build && npm start` (or your start script). Add env vars: `DATABASE_URL`, `JWT_SECRET`, etc.
-- **Railway / Fly.io**: similar — set root to `backend`, add env vars, run migrations and start the server.
+### Backend environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `JWT_SECRET` | Yes | Secret for signing tokens (long random string) |
+| **Email (for verification)** | | |
+| `SMTP_HOST` | Yes in production | SMTP server host (e.g. `smtp.gmail.com`, Mailgun, SendGrid) |
+| `SMTP_PORT` | No | Usually `587` (default) or `465` |
+| `SMTP_USER` | Yes with SMTP | SMTP username |
+| `SMTP_PASS` | Yes with SMTP | SMTP password or app password |
+| `EMAIL_FROM` | No | From address (defaults to `SMTP_USER`) |
+| `FRONTEND_URL` | Yes when using email | Your frontend URL for verify links (e.g. `https://your-app.vercel.app`) |
+
+**If `SMTP_HOST` is not set in production**, signup will return **503** and no user is created, so users see a clear error instead of “check your email” with no email arriving. Copy `backend/.env.example` to `backend/.env` and fill in your SMTP and `FRONTEND_URL`.
+
+### Email provider examples
+
+- **Gmail**: Use an [App Password](https://support.google.com/accounts/answer/185833). `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`, `SMTP_USER` = your email, `SMTP_PASS` = app password.
+- **Mailgun / SendGrid / Resend**: Use their SMTP credentials and set `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` (and `EMAIL_FROM` if required).
 
 Use the backend’s public URL as **`VITE_API_BASE`** in the Vercel frontend (and admin) projects.
