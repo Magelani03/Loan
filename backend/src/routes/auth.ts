@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import { sendEmail, isEmailConfigured } from '../lib/email';
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET!;
+const JWT_SECRET = process.env.JWT_SECRET;
 const SALT = 10;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const isDev = process.env.NODE_ENV !== 'production';
@@ -89,20 +89,37 @@ router.post('/signup', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ error: 'Invalid credentials' });
-  }
+  try {
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required.' });
+    }
 
-  const skipVerify = verificationDisabled || process.env.SKIP_EMAIL_VERIFY === 'true';
-  if (user.emailVerified === false && !skipVerify) {
-    return res.status(403).json({ error: 'Please verify your email address before logging in.' });
-  }
+    if (!JWT_SECRET) {
+      console.error('POST /login: JWT_SECRET is not set (check backend/.env or root .env).');
+      return res.status(503).json({
+        error: 'Server is not configured for login. Set JWT_SECRET in the backend environment.',
+      });
+    }
 
-  const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
-  const role = (user.role ?? 'user').toLowerCase();
-  res.json({ token, user: { id: user.id, email, name: user.name, role } });
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const skipVerify = verificationDisabled || process.env.SKIP_EMAIL_VERIFY === 'true';
+    if (user.emailVerified === false && !skipVerify) {
+      return res.status(403).json({ error: 'Please verify your email address before logging in.' });
+    }
+
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    const role = String(user.role ?? 'user').toLowerCase();
+    res.json({ token, user: { id: user.id, email: user.email, name: user.name, role } });
+  } catch (e: any) {
+    console.error('POST /login error:', e);
+    res.status(500).json({ error: 'Login failed. Please try again.' });
+  }
 });
 
 // Resend verification email (no auth required)

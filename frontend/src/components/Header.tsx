@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
+import brandLogo from "@/assets/aunty-d-logo.png";
 
 export const Header = () => {
   const location = useLocation();
@@ -52,14 +53,13 @@ export const Header = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="h-8 w-8 rounded-full bg-primary text-background flex items-center justify-center text-lg font-bold">
-              A
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold text-foreground">AUNTY D</span>
-              <span className="text-xs text-muted-foreground">Financial Health</span>
-            </div>
+          <Link to="/" className="flex items-center group shrink-0">
+            <img
+              src={brandLogo}
+              alt="AUNTY D — Your bridge to better finance"
+              className="h-12 sm:h-14 w-auto max-h-[3.5rem] object-contain object-left"
+            />
+            <span className="sr-only">AUNTY D: Financial Health</span>
           </Link>
 
           {/* Navigation Links */}

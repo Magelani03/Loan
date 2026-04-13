@@ -1,7 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Load .env from backend folder, then from project root (so root .env is used when running from backend)
+// backend/.env — try paths for both `src/config` (ts-node) and `dist/src/config` (node dist)
+dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+// cwd and repo root (fallback)
 dotenv.config();
 dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
 

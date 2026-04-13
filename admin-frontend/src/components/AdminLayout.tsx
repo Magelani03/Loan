@@ -13,8 +13,13 @@ export function AdminLayout() {
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
-        <div className="admin-sidebar-brand">
-          <span className="admin-sidebar-logo">Loan Admin</span>
+        <div className="admin-sidebar-brand admin-sidebar-brand--logo">
+          <img
+            src="/aunty-d-logo.png"
+            alt="AUNTY D"
+            className="admin-sidebar-logo-img"
+          />
+          <span className="admin-sidebar-logo-sub">Admin</span>
         </div>
         <nav className="admin-sidebar-nav">
           <NavLink
